@@ -6,6 +6,7 @@ finetune_demo/data
 finetune_demo/formatted_data
 ToolAlpaca/
 AdvertiseGen/
+model/
 *.gz
 *.idea
 .DS_Store

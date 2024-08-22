@@ -51,12 +51,11 @@ from sse_starlette.sse import EventSourceResponse
 EventSourceResponse.DEFAULT_PING_INTERVAL = 1000
 
 # set LLM path
-MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+MODEL_PATH = os.environ.get('MODEL_PATH', 'D:\ChatGLM3\model\chatglm3-6b')
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
 
 # set Embedding Model path
-EMBEDDING_PATH = os.environ.get('EMBEDDING_PATH', 'BAAI/bge-m3')
-
+EMBEDDING_PATH = os.environ.get('EMBEDDING_PATH', 'D:\ChatGLM3\model\c-bge-m3')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -529,7 +528,7 @@ def contains_custom_function(value: str) -> bool:
 if __name__ == "__main__":
     # Load LLM
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH, trust_remote_code=True)
-    model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+    model = AutoModel.from_pretrained("D:\ChatGLM3\model\chatglm3-6b", trust_remote_code=True).quantize(4).cuda()
 
     # load Embedding
     embedding_model = SentenceTransformer(EMBEDDING_PATH, device="cuda")
