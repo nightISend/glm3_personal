@@ -133,6 +133,40 @@ def get_shell(
         return e.stderr
 
 
+'''
+以如下方式调用工具效果好
+{
+ "地址":"海宁市海昌街道洛隆路271号九方驾校"
+ "任务":"获取地址的经纬度坐标"	
+}
+'''
+@register_tool
+def get_location(
+        address: Annotated[str, '需要地址', True],
+) -> str:
+    """
+    获取给定地址的经纬度坐标
+    """
+
+    if not isinstance(address, str):
+        raise TypeError("City name must be a string")
+
+    key_selection = {
+        "geocodes": ["location", "formatted_address"],
+    }
+    import requests
+    try:
+        resp = requests.get(f"https://restapi.amap.com/v3/geocode/geo?address={address}&key=956f5653d5d99017638564a45d08acba")
+        resp.raise_for_status()
+        resp = resp.json()
+        ret = resp
+    except:
+        import traceback
+        ret = "Error encountered while fetching location data!\n" + traceback.format_exc()
+
+    return str(ret)
+
+
 if __name__ == "__main__":
     # print(dispatch_tool("get_shell", {"query": "pwd"}))
     print(get_tools())
