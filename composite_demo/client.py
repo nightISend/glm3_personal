@@ -15,7 +15,7 @@ from conversation import Conversation
 
 TOOL_PROMPT = 'Answer the following questions as best as you can. You have access to the following tools:'
 
-MODEL_PATH = os.environ.get('MODEL_PATH', 'THUDM/chatglm3-6b')
+MODEL_PATH = os.environ.get('MODEL_PATH', 'D:\ChatGLM3\model\chatglm3-6b')
 PT_PATH = os.environ.get('PT_PATH', None)
 PRE_SEQ_LEN = int(os.environ.get("PRE_SEQ_LEN", 128))
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
@@ -136,8 +136,8 @@ class HFClient(Client):
             self.model = AutoModel.from_pretrained(
                 model_path,
                 trust_remote_code=True,
-                config=config,
-                device_map="auto").eval()
+                config=config
+                ).quantize(bits=4, device="cuda").cuda().eval()
             # add .quantize(bits=4, device="cuda").cuda() before .eval() and remove device_map="auto" to use int4 model
             # must use cuda to load int4 model
             prefix_state_dict = torch.load(os.path.join(pt_checkpoint, "pytorch_model.bin"))
@@ -148,7 +148,7 @@ class HFClient(Client):
             print("Loaded from pt checkpoints", new_prefix_state_dict.keys())
             self.model.transformer.prefix_encoder.load_state_dict(new_prefix_state_dict)
         else:
-            self.model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
+            self.model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True).quantize(bits=4, device="cuda").cuda().eval()
             # add .quantize(bits=4, device="cuda").cuda() before .eval() and remove device_map="auto" to use int4 model
             # must use cuda to load int4 model
 
