@@ -1,3 +1,4 @@
+# 连接MySQL
 import mysql.connector
 from transformers import AutoTokenizer, AutoModel
 import requests
