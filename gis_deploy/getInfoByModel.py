@@ -127,10 +127,11 @@ if __name__=="__main__":
     data=pd.read_excel("F:/Repo/资料备份/毕设/数据库数据/sanya12345_dataset.xlsx",sheet_name="sanya12345_dataset",keep_default_na=False)
     for index, row in data.iterrows():
         i=i+1
-        if i>10:
+        if i>100:
             break
         events=row['工单内容']
         result=getAddressByModel(events) 
+        i=i+1
         address=''
         time=''
         goal=''
@@ -167,6 +168,6 @@ if __name__=="__main__":
             print(e)
             print(sql)
         postgre_connect.commit()
-        
+        print(f"添加{i}条数据")        
     cursor.close()  # 关闭游标
     postgre_connect.close()  # 关闭数据库
