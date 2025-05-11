@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModel
 import requests
-import psycopg2 
+import psycopg2
 import pandas as pd
 import json
 from faker import Faker
@@ -112,9 +112,9 @@ import random
 
 def getAddressByModel(test):
     text_query='''
-    你是一个信息提取模型，你的任务是从下列来自三亚地区的12345市民服务热线数据中提取相关的具体的事件发生地、判断市民来电的目的。
-    返回的内容中只有位置和目的2个属性，其中位置从文本中提取（若没有提到位置则返回无，且位置应尽可能详细），目的从投诉和咨询中选取。
-    注意，对于一些表述模糊的位置，你需要自行判断其所指的具体的可以确定坐标的位置，如文本中提及"火车站"，你应该输出的位置为"三亚站"。最终结果以JSON的形式返回
+    你是一个语义提取模型，你的任务是从下列来自三亚地区的12345市民服务热线数据中提取相关的具体的事件发生地并判断市民来电的目的。
+            返回的内容中只有位置和目的2个属性，其中位置从文本中提取且对位置的描述应尽可能详细。对于一些位置描述模糊的文本，你需要自行推理其所指的具体的位置，如文本中提及"火车站"，根据文本的来源，你应该推测其所指的是"三亚站"，并返回三亚站。
+            若没有提到位置则返回无。目的从投诉和咨询中选取。
     请参考以下样例。
        样例1:
     输入:市民来电反映：凤凰路凤凰水城翠屏左岸1区1栋有人员室内装修噪音扰民，以及节假日是否允许施工？望处理。
@@ -221,9 +221,9 @@ def getAddressByModel(test):
     text_system_info=[
         {
             "role": "user",
-            "content":  '''你是一个信息提取模型，你的任务是从下列来自三亚地区的12345市民服务热线数据中提取相关的具体的事件发生地、判断市民来电的目的。
-            返回的内容中只有位置和目的2个属性，其中位置从文本中提取（若没有提到位置则返回无，且位置应尽可能详细），目的从投诉和咨询中选取。
-            注意，对于一些表述模糊的位置，你需要自行判断其所指的具体的可以确定坐标的位置，如文本中提及"火车站"，你应该输出的位置为"三亚站"。最终结果以JSON的形式返回
+            "content":  '''你是一个语义提取模型，你的任务是从下列来自三亚地区的12345市民服务热线数据中提取相关的具体的事件发生地并判断市民来电的目的。
+            返回的内容中只有位置和目的2个属性，其中位置从文本中提取且对位置的描述应尽可能详细。对于一些位置描述模糊的文本，你需要自行推理其所指的具体的位置，如文本中提及"火车站"，根据文本的来源，你应该推测其所指的是"三亚站"，并返回三亚站。
+            若没有提到位置则返回无。目的从投诉和咨询中选取。
             请参考以下样例。
             样例1:
             输入:市民来电反映：凤凰路凤凰水城翠屏左岸1区1栋有人员室内装修噪音扰民，以及节假日是否允许施工？望处理。
@@ -246,9 +246,9 @@ def getAddressByModel(test):
         },
         {
             "role": "user",
-            "content":  '''你是一个信息提取模型，你的任务是从下列来自三亚地区的12345市民服务热线数据中提取相关的具体的事件发生地、判断市民来电的目的。
-            返回的内容中只有位置和目的2个属性，其中位置从文本中提取（若没有提到位置则返回无，且位置应尽可能详细），目的从投诉和咨询中选取。
-            注意，对于一些表述模糊的位置，你需要自行判断其所指的具体的可以确定坐标的位置，如文本中提及"火车站"，你应该输出的位置为"三亚站"。最终结果以JSON的形式返回
+            "content":  '''你是一个语义提取模型，你的任务是从下列来自三亚地区的12345市民服务热线数据中提取相关的具体的事件发生地并判断市民来电的目的。
+            返回的内容中只有位置和目的2个属性，其中位置从文本中提取且对位置的描述应尽可能详细。对于一些位置描述模糊的文本，你需要自行推理其所指的具体的位置，如文本中提及"火车站"，根据文本的来源，你应该推测其所指的是"三亚站"，并返回三亚站。
+            若没有提到位置则返回无。目的从投诉和咨询中选取。
             请参考以下样例。
             样例1:
             输入:市民来电反映：凤凰路凤凰水城翠屏左岸1区1栋有人员室内装修噪音扰民，以及节假日是否允许施工？望处理。
@@ -324,7 +324,7 @@ if __name__=="__main__":
             if i>2000:
                 break
 
-        cursor.execute(f"select * from public.sum_12345_17 where id=\'{row['order']}\'")
+        cursor.execute(f"select * from public.sum_12345_attempt where id=\'{row['order']}\'")
         exist=cursor.fetchall();
         if len(exist)>0:
             continue
@@ -342,7 +342,6 @@ if __name__=="__main__":
             print(result)
             address=result['位置']
             goal=result['目的']
-            category=result['类别']
         except:
             print(f"{row['order']}返回格式不对")
             continue
@@ -353,15 +352,15 @@ if __name__=="__main__":
             if type(coordinate) !=str:
                 wkt=f'ST_GeomFromText(\'point({coordinate[0]} {coordinate[1]})\',4326)'
                 sql=f'''
-                        INSERT INTO public.sum_12345_17(
-                        id, events, category, category1, name, phone, occur_time, solve_time,  goal, goal1,address, longitude, latitude, geom)
-                        VALUES (\'{row['order']}\', \'{row['工单内容']}\', \'{trueCategory}\', \'{category}\', \'{f.last_name()+random.choice(['女士','先生'])}\', \'{f.phone_number()}\', \'{str(row['来电时间'])}\', \'{str(row['处理时间'])}\', \'{trueGoal}\', \'{goal}\', \'{address}\', {coordinate[0]}, {coordinate[1]}, {wkt});
+                        INSERT INTO public.sum_12345_attempt(
+                        id, events, name, phone, occur_time, solve_time,  goal, goal1,address, longitude, latitude, geom)
+                        VALUES (\'{row['order']}\', \'{row['工单内容']}\',  \'{f.last_name()+random.choice(['女士','先生'])}\', \'{f.phone_number()}\', \'{str(row['来电时间'])}\', \'{str(row['处理时间'])}\', \'{trueGoal}\', \'{goal}\', \'{address}\', {coordinate[0]}, {coordinate[1]}, {wkt});
                     '''
             else:
                 sql=f'''
-                        INSERT INTO public.sum_12345_17(
-                        id, events, category, category1, name, phone, occur_time, solve_time,  goal, goal1, address)
-                        VALUES (\'{row['order']}\', \'{row['工单内容']}\', \'{trueCategory}\', \'{category}\', \'{f.last_name()+random.choice(['女士','先生'])}\', \'{f.phone_number()}\', \'{str(row['来电时间'])}\', \'{str(row['处理时间'])}\', \'{trueGoal}\', \'{goal}\', \'{address}\');
+                        INSERT INTO public.sum_12345_attempt(
+                        id, events, name, phone, occur_time, solve_time,  goal, goal1, address)
+                        VALUES (\'{row['order']}\', \'{row['工单内容']}\',  \'{f.last_name()+random.choice(['女士','先生'])}\', \'{f.phone_number()}\', \'{str(row['来电时间'])}\', \'{str(row['处理时间'])}\', \'{trueGoal}\', \'{goal}\', \'{address}\');
                     '''
             cursor.execute(sql)
         except Exception as e:
